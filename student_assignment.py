@@ -8,18 +8,22 @@ from langchain_core.messages import HumanMessage
 
 gpt_chat_version = 'gpt-4o'
 gpt_config = get_model_configuration(gpt_chat_version)
+
+
+# HW1 begin
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate
 
-
 import json
 import re
+from langchain_core.output_parsers import JsonOutputParser
 from pydantic import BaseModel, Field
 from typing import List
 
+
 class Holiday_Item(BaseModel):
     """Information about a holiday."""
-    date: str = Field(..., description="Date ofholiday")
+    date: str = Field(..., description="Date of holiday")
     name: str = Field(..., description="Name of holiday.")
 
 
@@ -50,6 +54,8 @@ def extract_json(message: AIMessage) -> List[dict]:
     except Exception:
         raise ValueError(f"Failed to parse: {message}")
 
+
+
 def generate_hw01(question):
     llm = AzureChatOpenAI(
             model=gpt_config['model_name'],
@@ -73,7 +79,15 @@ def generate_hw01(question):
         ]
     ).partial(schema=Fianl_Result.schema())
 
-    chain = prompt | llm | extract_json
+    # Set up a parser + inject instructions into the prompt template.
+    parser = JsonOutputParser(pydantic_object=Fianl_Result)
+
+    #print(prompt.format_prompt(query=question).to_string())
+
+    #all_msgs = [ai_message, question_message, reformat_request]
+    #response = llm.invoke(all_msgs)
+
+    chain = prompt | llm | parser
     response = chain.invoke({"query": question})
 
     return response
