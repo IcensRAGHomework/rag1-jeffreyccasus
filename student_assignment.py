@@ -40,7 +40,7 @@ def generate_hw01(question):
 
     response = llm.invoke(all_msgs)
 
-    return response
+    return response.content
     
 def generate_hw02(question):
     pass
