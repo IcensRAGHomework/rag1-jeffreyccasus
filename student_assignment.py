@@ -77,7 +77,7 @@ def generate_hw01(question):
             ),
             ("human", "{query}"),
         ]
-    ).partial(schema=Fianl_Result.schema())
+    ).partial(schema=Fianl_Result.model_json_schema())
 
     # Set up a parser + inject instructions into the prompt template.
     parser = JsonOutputParser(pydantic_object=Fianl_Result)
