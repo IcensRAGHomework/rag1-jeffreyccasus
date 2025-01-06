@@ -32,7 +32,7 @@ def generate_hw01(question):
     )
     reformat_request = HumanMessage(
             content=[
-                {"type": "text", "text": "在每一行 只用 日期 和 節日名稱 顯示, 且日期格式為 YYYY-MM-DD. 並用 json format 包裝, json 的第一層是 result. json format 中 日期 用 date 取代. 節日名稱 用 name 取代."},
+                {"type": "text", "text": "在每一行 只用 日期 和 節日名稱 顯示, 且日期格式為 YYYY-MM-DD. 並用 json format 包裝, json 的第一層是 Result. json format 中 日期 用 date 取代. 節日名稱 用 name 取代."},
             ]
     )
 
