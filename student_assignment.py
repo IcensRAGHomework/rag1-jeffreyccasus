@@ -8,8 +8,47 @@ from langchain_core.messages import HumanMessage
 
 gpt_chat_version = 'gpt-4o'
 gpt_config = get_model_configuration(gpt_chat_version)
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+from langchain_core.prompts import ChatPromptTemplate
 
-from langchain_core.messages import HumanMessage, SystemMessage
+
+import json
+import re
+from pydantic import BaseModel, Field
+from typing import List
+
+class Holiday_Item(BaseModel):
+    """Information about a holiday."""
+    date: str = Field(..., description="Date ofholiday")
+    name: str = Field(..., description="Name of holiday.")
+
+
+class Fianl_Result(BaseModel):
+    """Identifying information about all holidays in specific month."""
+    Result: List[Holiday_Item]
+
+# Custom parser
+def extract_json(message: AIMessage) -> List[dict]:
+    """Extracts JSON content from a string where JSON is embedded between \`\`\`json and \`\`\` tags.
+
+    Parameters:
+        text (str): The text containing the JSON content.
+
+    Returns:
+        list: A list of extracted JSON strings.
+    """
+    text = message.content
+    # Define the regular expression pattern to match JSON blocks
+    pattern = r"\`\`\`json(.*?)\`\`\`"
+
+    # Find all non-overlapping matches of the pattern in the string
+    matches = re.findall(pattern, text, re.DOTALL)
+
+    # Return the list of matched JSON strings, stripping any leading or trailing whitespace
+    try:
+        return [json.loads(match.strip()) for match in matches]
+    except Exception:
+        raise ValueError(f"Failed to parse: {message}")
 
 def generate_hw01(question):
     llm = AzureChatOpenAI(
@@ -20,27 +59,24 @@ def generate_hw01(question):
             azure_endpoint=gpt_config['api_base'],
             temperature=gpt_config['temperature']
     )
-    ai_message = SystemMessage(
-            content=[
-                {"type": "text", "text": "你目前扮演 台灣政府, 並了解 台灣的行事曆"},
-            ]
-    )
-    question_message = HumanMessage(
-            content=[
-                {"type": "text", "text": question},
-            ]
-    )
-    reformat_request = HumanMessage(
-            content=[
-                {"type": "text", "text": "在每一行 只用 日期 和 節日名稱 顯示, 且日期格式為 YYYY-MM-DD. 並用 json format 包裝, json 的第一層是 Result. json format 中 日期 用 date 取代. 節日名稱 用 name 取代."},
-            ]
-    )
 
-    all_msgs = [ai_message, question_message, reformat_request]
+    # Prompt
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "Answer the user query. Output your answer as JSON that  "
+                "matches the given schema: \`\`\`json\n{schema}\n\`\`\`. "
+                "Make sure to wrap the answer in \`\`\`json and \`\`\` tags",
+            ),
+            ("human", "{query}"),
+        ]
+    ).partial(schema=Fianl_Result.schema())
 
-    response = llm.invoke(all_msgs)
+    chain = prompt | llm | extract_json
+    response = chain.invoke({"query": question})
 
-    return response.content.replace("\n", "")
+    return response
     
 def generate_hw02(question):
     pass
