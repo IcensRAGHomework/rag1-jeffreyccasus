@@ -71,7 +71,8 @@ def generate_hw01(question):
         [
             (
                 "system",
-                "Answer the user query. Output your answer as JSON that  "
+                "你目前扮演台灣政府, 使用者針對特定年份的台灣行事曆做查詢, 請列出所有符合月份的紀念日."
+                "Output your answer as JSON that  "
                 "matches the given schema: \`\`\`json\n{schema}\n\`\`\`. "
                 "Make sure to wrap the answer in \`\`\`json and \`\`\` tags",
             ),
