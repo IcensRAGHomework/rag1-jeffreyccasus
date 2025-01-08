@@ -92,9 +92,70 @@ def generate_hw01(question):
     response = chain.invoke({"query": question})
 
     return json.dumps(response, ensure_ascii = False)
-    
+
+# HW2 begin
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+import json
+import requests
+
+def get_year(question):
+    llm = AzureChatOpenAI(
+        model=gpt_config['model_name'],
+        deployment_name=gpt_config['deployment_name'],
+        openai_api_key=gpt_config['api_key'],
+        openai_api_version=gpt_config['api_version'],
+        azure_endpoint=gpt_config['api_base'],
+        temperature=gpt_config['temperature']
+    )
+    response = llm.invoke([
+        SystemMessage(content="請只回答問題中的年份, 並以數字表示"),
+        HumanMessage(content=question),
+        #HumanMessage(content="請問是哪個年份?"),
+        SystemMessage(content="請只回答問題中的年份, 並以數字表示"),
+    ]) 
+    return response.content
+
+def get_month(question):
+    llm = AzureChatOpenAI(
+        model=gpt_config['model_name'],
+        deployment_name=gpt_config['deployment_name'],
+        openai_api_key=gpt_config['api_key'],
+        openai_api_version=gpt_config['api_version'],
+        azure_endpoint=gpt_config['api_base'],
+        temperature=gpt_config['temperature']
+    )
+    response = llm.invoke([
+        SystemMessage(content="請只回答問題中的月份, 並以數字表示"),
+        HumanMessage(content=question),
+        SystemMessage(content="請只回答問題中的月份, 並以數字表示"),
+        SystemMessage(content="請只回答問題中的月份, 並以數字表示"),
+    ])
+    return response.content
+
 def generate_hw02(question):
-    pass
+    # Fetch holiday from Calendarific website via webapi and personal api key
+    Calendarific_api_key = "JQeWnmY3xqc6y2jRtEhdL58tQY3lKdA5"
+    query_year = get_year(question)
+    query_month = get_month(question)
+    api_url = "https://calendarific.com/api/v2/holidays?&api_key="+Calendarific_api_key+"&country=TW&language=zh&year="+str(query_year)+"&month="+str(query_month)
+    webapi_response = requests.get(api_url)
+    calendarific_response_json = webapi_response.json()
+    #print(calendarific_response_json["date"]["iso"])
+    #print(calendarific_response_json["name"])
+
+    # Convert and filter fetch data to json format in homework style
+    holiday_item_formatting = " \"date\": \"{0}\", \"name\": \"{1}\" "
+
+    final_response_json = "{ \"Result\": [ "
+    for item in calendarific_response_json["response"]["holidays"]:
+        final_response_json = final_response_json + " { "
+        final_response_json = final_response_json + holiday_item_formatting.format(str(item["date"]["iso"]), str(item["name"]))
+
+        final_response_json = final_response_json + " } ,"
+    final_response_json = final_response_json[:-1]
+    final_response_json = final_response_json + " ] }"
+
+    return final_response_json
     
 def generate_hw03(question2, question3):
     pass
