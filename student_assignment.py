@@ -91,7 +91,7 @@ def generate_hw01(question):
     chain = prompt | llm | parser
     response = chain.invoke({"query": question})
 
-    return response
+    return json.dumps(response)
     
 def generate_hw02(question):
     pass
