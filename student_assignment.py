@@ -108,11 +108,11 @@ def get_year(question):
         temperature=gpt_config['temperature']
     )
     response = llm.invoke([
-        SystemMessage(content="請只回答問題中的年份, 並以數字表示"),
+        SystemMessage(content="你只能回答問題中的年份, 並以數字表示"),
         HumanMessage(content=question),
         #HumanMessage(content="請問是哪個年份?"),
-        SystemMessage(content="請只回答問題中的年份, 並以數字表示"),
-    ]) 
+        #SystemMessage(content="請只回答問題中的年份, 並以數字表示"),
+    ])
     return response.content
 
 def get_month(question):
@@ -125,10 +125,11 @@ def get_month(question):
         temperature=gpt_config['temperature']
     )
     response = llm.invoke([
-        SystemMessage(content="請只回答問題中的月份, 並以數字表示"),
+        SystemMessage(content="你只能回答問題中的月份, 並以數字表示"),
+        #SystemMessage(content="請只回答問題中的月份, 並以數字表示"),
         HumanMessage(content=question),
-        SystemMessage(content="請只回答問題中的月份, 並以數字表示"),
-        SystemMessage(content="請只回答問題中的月份, 並以數字表示"),
+        #SystemMessage(content="請只回答問題中的月份, 並以數字表示"),
+        #SystemMessage(content="請只回答問題中的月份, 並以數字表示"),
     ])
     return response.content
 
