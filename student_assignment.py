@@ -274,9 +274,39 @@ def generate_hw03(question2, question3):
     final_response = " { \"Result\": {  " + final_response + " }  }"
 
     return final_response
-    
+
+# HW04 begin
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+
 def generate_hw04(question):
-    pass
+    llm = AzureChatOpenAI(
+        model=gpt_config['model_name'],
+        deployment_name=gpt_config['deployment_name'],
+        openai_api_key=gpt_config['api_key'],
+        openai_api_version=gpt_config['api_version'],
+        azure_endpoint=gpt_config['api_base'],
+        temperature=gpt_config['temperature']
+    )
+
+    # get image url from github directly
+    image_url = "https://raw.githubusercontent.com/IcensRAGHomework/rag1-jeffreyccasus/refs/heads/main/baseball.png?raw=true"
+
+    score_response = llm.invoke([
+        SystemMessage(content="只回答分數的數字"),
+        HumanMessage(
+            content=[
+                {"type": "image_url", "image_url": {"url": image_url}},
+                {"type": "text", "text": question},
+            ],
+        )
+    ])
+
+    #prepase final json
+    score_formatting = " \"score\": {0}"
+    final_response = score_formatting.format(score_response.content)
+    final_response = " { \"Result\": { " + final_response + " }  }"
+
+    return final_response
     
 def demo(question):
     llm = AzureChatOpenAI(
