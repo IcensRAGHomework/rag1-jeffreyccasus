@@ -145,6 +145,17 @@ def generate_hw02(question):
     #print(calendarific_response_json["name"])
 
     # Convert and filter fetch data to json format in homework style
+    response_array = []
+    for item in calendarific_response_json["response"]["holidays"]:
+        item_object = {
+                'date': item["date"]["iso"],
+                'name': item["name"],
+            }
+        response_array.append(item_object)
+    final_response_json = json.dumps(response_array)
+    final_response_json = "{ \"Result\": " + final_response_json + " }"
+
+    """
     holiday_item_formatting = " \"date\": \"{0}\", \"name\": \"{1}\" "
 
     final_response_json = "{ \"Result\": [ "
@@ -153,8 +164,9 @@ def generate_hw02(question):
         final_response_json = final_response_json + holiday_item_formatting.format(str(item["date"]["iso"]), str(item["name"]))
 
         final_response_json = final_response_json + " } ,"
-    final_response_json = final_response_json[:-1]
+    final_response_json = final_response_json[:-1]  # remove the last and useless ,
     final_response_json = final_response_json + " ] }"
+    """
 
     return final_response_json
     
