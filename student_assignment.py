@@ -254,14 +254,14 @@ def generate_hw03(question2, question3):
 
     result_add = chain_with_history.invoke(
         {"holiday_list": feedback_hw02, 
-         "question": "所以這節日是否存在之前提供的清單中, 請回答 true or false"},
+         "question": "這節日如果不在之前的清單, 並且需要被加入, 請回答 true, 反之則回答 false"},
         config={"configurable": {"session_id": "foo"}}
     )
     print(result_add.content)
 
     result_reason = chain_with_history.invoke(
         {"holiday_list": feedback_hw02, 
-         "question": "請解釋一下原因"},
+         "question": "請解釋一下需要加入或不加入的原因, 並且額外將目前已存在的所有節日, 只列出節日中文名稱在同一行"},
         config={"configurable": {"session_id": "foo"}}
     )
     print(result_reason.content)
