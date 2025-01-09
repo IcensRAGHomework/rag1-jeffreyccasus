@@ -269,8 +269,8 @@ def generate_hw03(question2, question3):
     print(remove_specific_char_reason)
 
     #prepase final json
-    add_or_not_string_formatting = " \"add\":\"{0}\",   \"reason\": \"{1}\" "
-    final_response = add_or_not_string_formatting.format(result_add.content, remove_specific_char_reason)
+    add_or_not_string_formatting = " \"add\": {0},   \"reason\": \"{1}\" "
+    final_response = add_or_not_string_formatting.format(result_add.content.lower(), remove_specific_char_reason)
     final_response = " { \"Result\": {  " + final_response + " }  }"
 
     return final_response
