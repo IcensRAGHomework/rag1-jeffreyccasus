@@ -169,9 +169,111 @@ def generate_hw02(question):
     """
 
     return final_response_json
-    
+
+# HW03 begin
+
+from typing import List
+
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+
+from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_core.documents import Document
+from langchain_core.messages import BaseMessage, AIMessage
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from pydantic import BaseModel, Field
+from langchain_core.runnables import (
+    RunnableLambda,
+    ConfigurableFieldSpec,
+    RunnablePassthrough,
+)
+from langchain_core.runnables.history import RunnableWithMessageHistory
+
+class InMemoryHistory(BaseChatMessageHistory, BaseModel):
+    """In memory implementation of chat message history."""
+
+    messages: List[BaseMessage] = Field(default_factory=list)
+
+    def add_messages(self, messages: List[BaseMessage]) -> None:
+        """Add a list of messages to the store"""
+        self.messages.extend(messages)
+
+    def clear(self) -> None:
+        self.messages = []
+
+# Here we use a global variable to store the chat message history.
+# This will make it easier to inspect it to see the underlying results.
+store = {}
+
+def get_by_session_id(session_id: str) -> BaseChatMessageHistory:
+    if session_id not in store:
+        store[session_id] = InMemoryHistory()
+    return store[session_id]
+
 def generate_hw03(question2, question3):
-    pass
+    # Get response from hw02 (get calendar from Calendarific website)
+    feedback_hw02 = generate_hw02(question2)
+
+    # Prepare Open AI
+    llm = AzureChatOpenAI(
+        model=gpt_config['model_name'],
+        deployment_name=gpt_config['deployment_name'],
+        openai_api_key=gpt_config['api_key'],
+        openai_api_version=gpt_config['api_version'],
+        azure_endpoint=gpt_config['api_base'],
+        temperature=gpt_config['temperature']
+    )
+
+    prompt = ChatPromptTemplate.from_messages([
+        ("ai", "{holiday_list}"),
+        MessagesPlaceholder(variable_name="history"),
+        ("human", "{question}"),
+    ])
+
+    chain = prompt | llm
+
+    # Begin conversion with history
+    #history = get_by_session_id("ask_holiday_session_id")
+    #history.add_message(AIMessage(content="hello"))
+    #print(store)  # noqa: T201
+
+    chain_with_history = RunnableWithMessageHistory(
+        chain,
+        # Uses the get_by_session_id function defined in the example
+        # above.
+        get_by_session_id,
+        input_messages_key="question",
+        history_messages_key="history",
+    )
+
+    result1 = chain_with_history.invoke(
+        {"holiday_list": feedback_hw02, 
+         "question": question3},
+        config={"configurable": {"session_id": "foo"}}
+    )
+    print(result1.content)
+
+    result_add = chain_with_history.invoke(
+        {"holiday_list": feedback_hw02, 
+         "question": "所以這節日是否存在之前提供的清單中, 請回答 true or false"},
+        config={"configurable": {"session_id": "foo"}}
+    )
+    print(result_add.content)
+
+    result_reason = chain_with_history.invoke(
+        {"holiday_list": feedback_hw02, 
+         "question": "請解釋一下原因"},
+        config={"configurable": {"session_id": "foo"}}
+    )
+    print(result_reason.content)
+    remove_specific_char_reason = result_reason.content.replace("\"", "") # remove " inside string
+    print(remove_specific_char_reason)
+
+    #prepase final json
+    add_or_not_string_formatting = " \"add\":\"{0}\",   \"reason\": \"{1}\" "
+    final_response = add_or_not_string_formatting.format(result_add.content, remove_specific_char_reason)
+    final_response = " { \"Result\": {  " + final_response + " }  }"
+
+    return final_response
     
 def generate_hw04(question):
     pass
