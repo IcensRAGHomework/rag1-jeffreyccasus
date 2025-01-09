@@ -261,7 +261,7 @@ def generate_hw03(question2, question3):
 
     result_reason = chain_with_history.invoke(
         {"holiday_list": feedback_hw02, 
-         "question": "請解釋一下需要加入或不加入的原因, 並且額外將目前已存在的所有節日, 只列出節日中文名稱在同一行"},
+         "question": "請用一行, 請解釋一下需要加入或不加入的原因, 並且額外將目前已存在的所有節日, 只列出節日中文名稱"},
         config={"configurable": {"session_id": "foo"}}
     )
     print(result_reason.content)
